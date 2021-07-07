@@ -27,9 +27,20 @@ jobs:
 
       # Runs a single command using the runners shell
       
-      - name: Execute SSH commmands on remote server
-        uses: JimCronqvist/action-ssh@master
+      - name: Install Node.js
+        uses: actions/setup-node@v1
         with:
-          hosts: 'ec2-18-118-115-218.us-east-2.compute.amazonaws.com'
-          privateKey: ${{ secrets.PRIVATE_KEY }}
-          command: whoami
+          node-version: '10.x'
+      - name: Install npm dependencies
+        run: npm install
+      - name: Run build task
+        run: npm run build --if-present
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        env:
+           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+           ARGS: "-rltgoDzvO --delete"
+           SOURCE: "dist/"
+           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+           REMOTE_USER: ${{ secrets.REMOTE_USER }}
+           EXCLUDE: "/dist/, /node_modules/"
